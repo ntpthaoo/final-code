@@ -2,14 +2,14 @@ version: 0.2
 
 files:
   - source: /
-    destination: /home/ec2-user/web/
+    destination: /home/ubuntu/web/
     overwrite: purge
     file_exists_behavior: OVERWRITE
 
 env:
   variables:
-    AWS_ACCOUNT_ID: <ACCOUNT_ID>
-    ECR_IMAGE_REGION: <ECR_IMAGE_REGION>
+    AWS_ACCOUNT_ID: 103448072587
+    ECR_IMAGE_REGION: us-east-1
 
 phases:
   pre_build:
@@ -24,16 +24,24 @@ phases:
   post_build:
     commands:
       - echo 3. "Post build"
-      - echo "3.1 Push built-nginx to ECR ---------"
-      - docker tag built-nginx:latest $AWS_ACCOUNT_ID.dkr.ecr.$ECR_IMAGE_REGION.amazonaws.com/built-nginx:latest
-      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$ECR_IMAGE_REGION.amazonaws.com/built-nginx:latest
+      - echo "3.1 Push nginx to ECR ---------"
+      - docker tag nginx:latest $AWS_ACCOUNT_ID.dkr.ecr.$ECR_IMAGE_REGION.amazonaws.com/nginx:latest
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$ECR_IMAGE_REGION.amazonaws.com/nginx:latest
       - echo "3.2 Push php-fpm to ECR --------"      
       - docker tag php-fpm:latest $AWS_ACCOUNT_ID.dkr.ecr.$ECR_IMAGE_REGION.amazonaws.com/php-fpm:latest
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$ECR_IMAGE_REGION.amazonaws.com/php-fpm:latest
       - echo "3.3 Create image definitions --------"
       - printf "[{\"name\":\"php-fpm\",\"imageUri\":\"$AWS_ACCOUNT_ID.dkr.ecr.$ECR_IMAGE_REGION.amazonaws.com/php-fpm:latest\"}," >> imagedefinitions.json
-      - printf "{\"name\":\"nginx\",\"imageUri\":\"$AWS_ACCOUNT_ID.dkr.ecr.$ECR_IMAGE_REGION.amazonaws.com/built-nginx:latest\"}]" >> imagedefinitions.json
+      - printf "{\"name\":\"nginx\",\"imageUri\":\"$AWS_ACCOUNT_ID.dkr.ecr.$ECR_IMAGE_REGION.amazonaws.com/nginx:latest\"}]" >> imagedefinitions.json
       - cat imagedefinitions.json
+      - echo "2. Build step"
+      - echo "Run SonarCloud scanner"
+      - sonar-scanner -Dsonar.organization=ntpthaoo -Dsonar.projectKey=ntpthaoo_shopee-clone -Dsonar.sources=. -Dsonar.host.url=https://sonarcloud.io
+      - sleep 5
+      - echo "Get SonarClound scanning result and output it to build log."
+      - curl https://sonarcloud.io/api/qualitygates/project_status?projectKey=$Project >result.json
+      - cat result.json
+      - if [ $(jq -r '.projectStatus.status' result.json) = ERROR ] ; then $CODEBUILD_BUILD_SUCCEEDING -eq 0 ;fi
 
 artifacts:
   files:

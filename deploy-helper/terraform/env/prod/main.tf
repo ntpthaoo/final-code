@@ -5,6 +5,9 @@ terraform {
     aws = ">= 2.0"
   }
 }
+provider "aws" {
+  region = "us-east-1"
+}
 
 locals {
   name        = "test_ecs"
@@ -35,7 +38,7 @@ module "ecs_cluster" {
 
 resource "aws_ecs_task_definition" "task_def" {
   family                = "service"
-  container_definitions = file("../../../task_def/nginx-php-revision2.json")
+  container_definitions = file("../../../task_def/proj.json")
 
   cpu                      = 256
   memory                   = 512
@@ -45,7 +48,7 @@ resource "aws_ecs_task_definition" "task_def" {
   execution_role_arn = module.ecs_cluster.taskExecRoleArn
   # task_role_arn      = module.ecs_cluster.taskExecRoleArn
 }
-
+ 
 module "common_sg" {
   source = "../../module/common_sg"
 
@@ -59,7 +62,7 @@ module "vpc" {
   name = "my-vpc"
   cidr = "10.0.0.0/16"
 
-  azs             = ["ap-southeast-1a", "ap-southeast-1b"]
+  azs             = ["us-east-1a", "us-east-1b"]
   private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
   public_subnets  = ["10.0.3.0/24", "10.0.4.0/24"]
 
