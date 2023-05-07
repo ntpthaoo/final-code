@@ -1,0 +1,10 @@
+[
+    {
+        "name": "built-nginx",
+        "imageUri": "<ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/built-nginx:latest"
+    },
+    {
+        "name": "php-fpm",
+        "imageUri": "<ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/php-fpm:latest"
+    }
+]
