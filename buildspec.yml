@@ -2,7 +2,7 @@ version: 0.2
 
 files:
   - source: /
-    destination: /home/ec2-user/web/
+    destination: /home/ubuntu/web/
     overwrite: purge
     file_exists_behavior: OVERWRITE
 
@@ -25,7 +25,7 @@ phases:
     commands:
       - echo 3. "Post build"
       - echo "3.1 Push nginx to ECR ---------"
-      - docker tag built-nginx:latest $AWS_ACCOUNT_ID.dkr.ecr.$ECR_IMAGE_REGION.amazonaws.com/nginx:latest
+      - docker tag nginx:latest $AWS_ACCOUNT_ID.dkr.ecr.$ECR_IMAGE_REGION.amazonaws.com/nginx:latest
       - docker push $AWS_ACCOUNT_ID.dkr.ecr.$ECR_IMAGE_REGION.amazonaws.com/nginx:latest
       - echo "3.2 Push php-fpm to ECR --------"      
       - docker tag php-fpm:latest $AWS_ACCOUNT_ID.dkr.ecr.$ECR_IMAGE_REGION.amazonaws.com/php-fpm:latest
